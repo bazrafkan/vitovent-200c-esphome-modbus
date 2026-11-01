@@ -10,6 +10,8 @@ Viessmann does not publish a Modbus register map for this unit. The map in this 
 
 ![Wiring](docs/images/wiring.svg)
 
+<p align="center"><img src="docs/images/install-front.jpg" width="420" alt="Installation behind the LB1 panel"></p>
+
 ## What you get
 
 | Home Assistant entity | Source |
