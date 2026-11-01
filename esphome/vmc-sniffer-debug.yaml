@@ -1,0 +1,55 @@
+# Viessmann Vitovent 200-C - READ-ONLY raw Modbus sniffer (hex dump, used for discovery)
+# XIAO ESP32-S3 + Waveshare TTL TO RS485 (C)
+# The ESP32 never transmits: nothing in this config writes to the UART.
+
+substitutions:
+  vmc_baud: "19200"     # if you only see garbage try 9600, then 38400
+  vmc_parity: "EVEN"    # Modbus RTU default: EVEN; otherwise try NONE
+
+esphome:
+  name: vmc-sniffer
+  friendly_name: VMC Sniffer
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+  hardware_uart: USB_SERIAL_JTAG   # logs go over USB, UART0 stays free for the bus
+
+api:
+  encryption:
+    key: !secret vmc_api_key
+
+ota:
+  - platform: esphome
+    password: !secret vmc_ota_password
+
+wifi:
+  ssid: !secret wifi_ssid          # 2.4 GHz network
+  password: !secret wifi_password
+  ap:
+    ssid: "VMC Sniffer Fallback"
+    password: !secret vmc_ap_password
+
+captive_portal:
+
+uart:
+  id: vmc_bus
+  tx_pin: GPIO43                   # D6 - wired but never used
+  rx_pin: GPIO44                   # D7
+  baud_rate: ${vmc_baud}
+  parity: ${vmc_parity}
+  stop_bits: 1
+  data_bits: 8
+  rx_buffer_size: 1024
+  debug:
+    direction: RX
+    dummy_receiver: true
+    after:
+      timeout: 5ms                 # one Modbus frame = one burst of bytes without gaps
+    sequence:
+      - lambda: UARTDebug::log_hex(direction, bytes, ' ');

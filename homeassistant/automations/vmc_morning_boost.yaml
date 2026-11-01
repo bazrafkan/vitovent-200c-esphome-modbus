@@ -1,0 +1,52 @@
+id: vmc_morning_boost
+alias: VMC Morning Boost
+description: 'Morning boost: from input_datetime.vmc_morning_boost_start to _end the VMC runs at input_number.vmc_morning_boost_speed,
+  then the previous state is restored. Skips restore if the cooking boost is active (it restores itself).'
+triggers:
+- trigger: time
+  at: input_datetime.vmc_morning_boost_start
+  id: start
+- trigger: time
+  at: input_datetime.vmc_morning_boost_end
+  id: stop
+conditions: []
+actions:
+- choose:
+  - conditions:
+    - condition: trigger
+      id: start
+    sequence:
+    - if:
+      - condition: template
+        value_template: '{{ is_state(''fan.vmc_ventilation'',''off'') or state_attr(''fan.vmc_ventilation'',''percentage'')
+          | int(0) != (states(''input_number.vmc_morning_boost_speed'')|int(4)) * 25 }}'
+      then:
+      - action: scene.create
+        data:
+          scene_id: vmc_before_morning
+          snapshot_entities:
+          - fan.vmc_ventilation
+    - action: fan.set_percentage
+      target:
+        entity_id: fan.vmc_ventilation
+      data:
+        percentage: '{{ (states(''input_number.vmc_morning_boost_speed'')|int(4)) * 25 }}'
+  - conditions:
+    - condition: trigger
+      id: stop
+    - condition: template
+      value_template: '{{ states.scene | selectattr(''entity_id'',''eq'',''scene.vmc_before_morning'') | list | count > 0
+        }}'
+    sequence:
+    - if:
+      - condition: template
+        value_template: '{{ states.scene | selectattr(''entity_id'',''eq'',''scene.vmc_before_cooking'') | list | count ==
+          0 }}'
+      then:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.vmc_before_morning
+    - action: scene.delete
+      target:
+        entity_id: scene.vmc_before_morning
+mode: single

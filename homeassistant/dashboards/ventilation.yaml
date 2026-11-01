@@ -1,0 +1,260 @@
+# Ventilation dashboard (Lovelace, sections view). Paste into: Dashboard > Edit > Raw configuration editor.
+# sensor.vmc_power_meter_* / update / button entities come from a separate Shelly meter on the unit's supply; remove them if you don't have one.
+# sensor.kitchen_induction_power = power sensor of the induction hob (any energy meter).
+title: Ventilation
+views:
+- title: Status
+  path: ventilation
+  type: sections
+  max_columns: 2
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: Speed
+      icon: mdi:fan
+      heading_style: title
+    - type: tile
+      entity: fan.vmc_ventilation
+      name: Ventilation
+      icon: mdi:hvac
+      vertical: false
+      features:
+      - type: fan-speed
+        style: icons
+      features_position: bottom
+      tap_action:
+        action: more-info
+      icon_tap_action:
+        action: none
+      grid_options:
+        columns: full
+  - type: grid
+    cards:
+    - type: heading
+      heading: Cooking
+      icon: mdi:stove
+      heading_style: title
+    - type: tile
+      entity: sensor.kitchen_induction_power
+      name: Induction power
+      icon: mdi:stove
+      grid_options:
+        columns: full
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: Status
+      icon: mdi:hvac
+      heading_style: title
+    - type: tile
+      entity: sensor.vmc_supply_airflow
+      name: Supply airflow
+      grid_options:
+        columns: 4
+      icon: mdi:weather-windy
+    - type: tile
+      entity: sensor.vmc_exhaust_airflow
+      name: Exhaust airflow
+      grid_options:
+        columns: 4
+      icon: mdi:weather-windy-variant
+    - type: tile
+      entity: sensor.vmc_filter_days_remaining
+      name: Filter days remaining
+      grid_options:
+        columns: 4
+      icon: mdi:air-filter
+  - type: grid
+    cards:
+    - type: heading
+      heading: Temperatures
+      icon: mdi:thermometer
+    - type: tile
+      entity: sensor.vmc_outdoor_temperature
+      name: Outdoor
+      grid_options:
+        columns: 6
+      icon: mdi:home-thermometer-outline
+    - type: tile
+      entity: sensor.vmc_supply_air_temperature
+      name: Supply air
+      grid_options:
+        columns: 6
+      icon: mdi:thermometer-chevron-down
+    - type: tile
+      entity: sensor.vmc_room_temperature
+      name: Room
+      grid_options:
+        columns: 12
+      icon: mdi:home-thermometer
+  - type: grid
+    cards:
+    - type: heading
+      heading: Fans
+      icon: mdi:fan
+    - type: tile
+      entity: sensor.vmc_supply_fan_speed
+      name: Supply fan speed
+      grid_options:
+        columns: 6
+      icon: mdi:fan-chevron-down
+    - type: tile
+      entity: sensor.vmc_exhaust_fan_speed
+      name: Exhaust fan speed
+      grid_options:
+        columns: 6
+      icon: mdi:fan-chevron-up
+    - type: tile
+      entity: sensor.vmc_power_meter_power
+      name: Power
+      grid_options:
+        columns: 12
+      icon: mdi:flash
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: History (24 h)
+      icon: mdi:chart-line
+    - type: history-graph
+      title: Temperatures
+      hours_to_show: 24
+      entities:
+      - entity: sensor.vmc_outdoor_temperature
+        name: Outdoor
+      - entity: sensor.vmc_supply_air_temperature
+        name: Supply air
+      - entity: sensor.vmc_room_temperature
+        name: Room
+      grid_options:
+        columns: full
+    - type: history-graph
+      title: Fan level & airflow
+      hours_to_show: 24
+      entities:
+      - entity: sensor.vmc_fan_level
+        name: Fan level
+      - entity: sensor.vmc_supply_airflow
+        name: Supply airflow
+      - entity: sensor.vmc_exhaust_airflow
+        name: Exhaust airflow
+      grid_options:
+        columns: full
+  - type: grid
+    cards:
+    - type: heading
+      heading: Diagnostics
+      icon: mdi:information-outline
+    - type: tile
+      entity: sensor.vmc_status_register_0xad
+      name: Status register 0xAD
+      grid_options:
+        columns: 6
+      icon: mdi:numeric
+    - type: tile
+      entity: sensor.vmc_status_register_0xb7
+      name: Status register 0xB7
+      grid_options:
+        columns: 6
+      icon: mdi:numeric
+- title: Settings
+  path: settings
+  icon: mdi:cog
+  type: sections
+  max_columns: 2
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: Cooking boost
+      icon: mdi:stove
+      heading_style: title
+    - type: tile
+      entity: automation.vmc_boost_while_cooking
+      name: Enabled
+      grid_options:
+        columns: full
+    - type: tile
+      entity: input_number.vmc_cooking_boost_speed
+      name: Boost speed (1-4)
+      features:
+      - type: numeric-input
+        style: buttons
+      features_position: bottom
+      grid_options:
+        columns: full
+    - type: tile
+      entity: input_number.vmc_cooking_start_threshold
+      name: Start when hob above
+      features:
+      - type: numeric-input
+        style: buttons
+      features_position: bottom
+      grid_options:
+        columns: full
+    - type: tile
+      entity: input_number.vmc_cooking_stop_threshold
+      name: Stop when hob below
+      features:
+      - type: numeric-input
+        style: buttons
+      features_position: bottom
+      grid_options:
+        columns: full
+    - type: tile
+      entity: input_number.vmc_cooking_stop_delay
+      name: Stop delay
+      features:
+      - type: numeric-input
+        style: buttons
+      features_position: bottom
+      grid_options:
+        columns: full
+  - type: grid
+    cards:
+    - type: heading
+      heading: Morning boost
+      icon: mdi:weather-sunset-up
+      heading_style: title
+    - type: tile
+      entity: automation.vmc_morning_boost
+      name: Enabled
+      grid_options:
+        columns: full
+    - type: tile
+      entity: input_datetime.vmc_morning_boost_start
+      name: Start
+      grid_options:
+        columns: full
+    - type: tile
+      entity: input_datetime.vmc_morning_boost_end
+      name: End
+      grid_options:
+        columns: full
+    - type: tile
+      entity: input_number.vmc_morning_boost_speed
+      name: Boost speed (1-4)
+      features:
+      - type: numeric-input
+        style: buttons
+      features_position: bottom
+      grid_options:
+        columns: full
+  - type: grid
+    cards:
+    - type: heading
+      heading: Device
+      icon: mdi:hvac
+      heading_style: title
+    - type: tile
+      entity: update.vmc_power_meter_firmware
+      name: Power meter firmware
+      grid_options:
+        columns: full
+    - type: tile
+      entity: button.vmc_power_meter_restart
+      name: Restart power meter
+      grid_options:
+        columns: full

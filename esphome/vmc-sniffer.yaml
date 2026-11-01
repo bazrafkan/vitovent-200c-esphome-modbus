@@ -1,0 +1,253 @@
+# Viessmann Vitovent 200-C - READ-ONLY Modbus sniffer (passive decoder)
+# XIAO ESP32-S3 + Waveshare TTL TO RS485 (C) on the LB1 panel <-> unit bus (terminals 3-4)
+# The ESP32 never transmits: it only decodes the traffic between panel and unit.
+# Register map: docs/register-map.md
+
+substitutions:
+  vmc_baud: "19200"
+  vmc_parity: "EVEN"
+
+esphome:
+  name: vmc-sniffer
+  friendly_name: VMC
+
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+api:
+  encryption:
+    key: !secret vmc_api_key
+
+ota:
+  - platform: esphome
+    password: !secret vmc_ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "VMC Sniffer Fallback"
+    password: !secret vmc_ap_password
+
+captive_portal:
+
+uart:
+  id: vmc_bus
+  tx_pin: GPIO43                   # D6 - wired but never used
+  rx_pin: GPIO44                   # D7
+  baud_rate: ${vmc_baud}
+  parity: ${vmc_parity}
+  stop_bits: 1
+  data_bits: 8
+  rx_buffer_size: 1024
+  debug:
+    direction: RX
+    dummy_receiver: true
+    after:
+      timeout: 5ms
+    sequence:
+      - lambda: |-
+          static std::vector<uint8_t> buf;
+          static uint16_t req_addr = 0, req_n = 0;
+          static bool have_req = false;
+          const uint8_t SLAVE = 0x46;
+
+          auto crc_ok = [](const uint8_t *d, size_t len) -> bool {
+            uint16_t c = 0xFFFF;
+            for (size_t i = 0; i < len - 2; i++) {
+              c ^= d[i];
+              for (int k = 0; k < 8; k++) c = (c & 1) ? (c >> 1) ^ 0xA001 : c >> 1;
+            }
+            return d[len - 2] == (c & 0xFF) && d[len - 1] == (c >> 8);
+          };
+
+          auto on_reg = [&](uint16_t reg, uint16_t raw) {
+            if (raw == 0x8000) return;  // "not available" value
+            float t = (int16_t) raw / 10.0f;
+            switch (reg) {
+              case 0x0086: id(vmc_outdoor_temp).publish_state(t); break;
+              case 0x008D: id(vmc_supply_temp).publish_state(t); break;
+              case 0x0095: id(vmc_room_temp).publish_state(t); break;
+              case 0x00A0: id(vmc_supply_flow).publish_state(raw); break;
+              case 0x00A1: id(vmc_exhaust_flow).publish_state(raw); break;
+              case 0x00D3: id(vmc_filter_days).publish_state(raw); break;
+              case 0x00DE: id(vmc_speed).publish_state(raw + 1); break;  // current level 0..3
+              case 0x00AD: id(vmc_status_ad).publish_state(raw); break;  // meaning unknown (0/16)
+              case 0x00B7: id(vmc_status_b7).publish_state(raw); break;  // meaning unknown (0/1)
+              case 0x013E: id(vmc_supply_rpm).publish_state(raw); break;
+              case 0x013F: id(vmc_exhaust_rpm).publish_state(raw); break;
+            }
+          };
+
+          buf.insert(buf.end(), bytes.begin(), bytes.end());
+          size_t i = 0;
+          while (i + 4 <= buf.size()) {
+            if (buf[i] != SLAVE) { i++; continue; }
+            uint8_t fc = buf[i + 1];
+            size_t len = 0;
+            bool is_req = false;
+            if ((fc == 0x01 || fc == 0x03 || fc == 0x05 || fc == 0x06) &&
+                i + 8 <= buf.size() && crc_ok(&buf[i], 8)) {
+              len = 8;
+              is_req = true;
+            } else if ((fc == 0x01 || fc == 0x03) && i + 3 <= buf.size()) {
+              size_t l = 5 + buf[i + 2];
+              if (i + l > buf.size()) break;  // incomplete frame: wait for more bytes
+              if (crc_ok(&buf[i], l)) len = l;
+            } else if (i + 8 > buf.size()) {
+              break;
+            }
+            if (len == 0) { i++; continue; }
+
+            const uint8_t *f = &buf[i];
+            if (is_req && fc == 0x03) {
+              req_addr = (f[2] << 8) | f[3];
+              req_n = (f[4] << 8) | f[5];
+              have_req = true;
+            } else if (is_req && fc == 0x06) {
+              uint16_t reg = (f[2] << 8) | f[3];
+              uint16_t val = (f[4] << 8) | f[5];
+              if (reg == 0x00A2) id(vmc_speed).publish_state(val + 1);
+            } else if (!is_req && fc == 0x03 && have_req && f[2] == req_n * 2) {
+              for (uint16_t k = 0; k < req_n; k++)
+                on_reg(req_addr + k, (f[3 + 2 * k] << 8) | f[4 + 2 * k]);
+              have_req = false;
+            }
+            i += len;
+          }
+          buf.erase(buf.begin(), buf.begin() + i);
+          if (buf.size() > 512) buf.clear();
+
+sensor:
+  - platform: template
+    id: vmc_outdoor_temp
+    name: "Outdoor temperature"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 0.1
+  - platform: template
+    id: vmc_supply_temp
+    name: "Supply air temperature"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 0.1
+  - platform: template
+    id: vmc_room_temp
+    name: "Room temperature"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 0.1
+  - platform: template
+    id: vmc_supply_flow
+    name: "Supply airflow"
+    unit_of_measurement: "m³/h"
+    device_class: volume_flow_rate
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 0.5
+  - platform: template
+    id: vmc_exhaust_flow
+    name: "Exhaust airflow"
+    unit_of_measurement: "m³/h"
+    device_class: volume_flow_rate
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 0.5
+  - platform: template
+    id: vmc_speed
+    name: "Fan level"
+    icon: mdi:fan
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 0.5
+  - platform: template
+    id: vmc_supply_rpm
+    name: "Supply fan speed"
+    unit_of_measurement: "rpm"
+    icon: mdi:fan
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 20
+  - platform: template
+    id: vmc_exhaust_rpm
+    name: "Exhaust fan speed"
+    unit_of_measurement: "rpm"
+    icon: mdi:fan
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 300s
+          - delta: 20
+  - platform: template
+    id: vmc_filter_days
+    name: "Filter days remaining"
+    unit_of_measurement: "d"
+    icon: mdi:air-filter
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 3600s
+          - delta: 0.5
+  - platform: template
+    id: vmc_status_ad
+    name: "Status register 0xAD"
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 3600s
+          - delta: 0.5
+  - platform: template
+    id: vmc_status_b7
+    name: "Status register 0xB7"
+    entity_category: diagnostic
+    accuracy_decimals: 0
+    update_interval: never
+    filters:
+      - or:
+          - throttle: 3600s
+          - delta: 0.5

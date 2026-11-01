@@ -1,0 +1,50 @@
+INFO ESPHome 2026.10.1
+INFO Loaded validated config cache for vmc-sniffer.yaml, skipping validation.
+INFO Starting log output from 192.168.1.50 using esphome API
+INFO Successfully resolved vmc-sniffer @ 192.168.1.50 in 0.000s
+INFO Successfully connected to vmc-sniffer @ 192.168.1.50 in 4.100s
+INFO Successful handshake with vmc-sniffer @ 192.168.1.50 in 0.076s
+[18:39:18.737][I][app:164]: ESPHome version 2026.10.1 compiled on 2026-10-31 18:39:00 +0100
+[18:39:18.737][I][app:171]: ESP32 Chip: ESP32-S3 rev0.2, 2 core(s)
+[18:39:18.738][W][app:189]: Set flash_chip: gd under esp32 > framework > advanced to save IRAM
+[18:39:21.853][S][select]: 'Fan speed' >> 2
+[18:39:26.951][S][select]: 'Fan speed' >> 2
+[18:39:32.034][S][select]: 'Fan speed' >> 2
+[18:39:37.132][S][select]: 'Fan speed' >> 2
+[18:39:42.213][S][select]: 'Fan speed' >> 2
+[18:39:43.254][S][select]: 'Fan speed' >> 2
+[18:39:48.343][S][select]: 'Fan speed' >> 2
+[18:39:53.435][S][select]: 'Fan speed' >> 2
+[18:39:58.532][S][select]: 'Fan speed' >> 2
+[18:40:03.622][S][select]: 'Fan speed' >> 2
+[18:40:08.722][S][select]: 'Fan speed' >> 2
+[18:40:13.813][S][select]: 'Fan speed' >> 2
+[18:40:13.915][I][safe_mode:154]: Boot seems successful; resetting boot loop counter
+[18:40:18.913][S][select]: 'Fan speed' >> 2
+[18:40:24.009][S][select]: 'Fan speed' >> 2
+[18:40:29.102][S][select]: 'Fan speed' >> 2
+[18:40:34.192][S][select]: 'Fan speed' >> 2
+[18:40:39.287][S][select]: 'Fan speed' >> 2
+[18:40:44.384][S][select]: 'Fan speed' >> 2
+[18:40:45.395][S][select]: 'Fan speed' >> 2
+[18:40:50.511][S][select]: 'Fan speed' >> 2
+[18:40:55.594][S][select]: 'Fan speed' >> 2
+[18:41:00.684][S][select]: 'Fan speed' >> 2
+[18:41:05.784][S][select]: 'Fan speed' >> 2
+[18:41:10.874][S][select]: 'Fan speed' >> 2
+[18:41:15.975][S][select]: 'Fan speed' >> 2
+[18:41:21.073][S][select]: 'Fan speed' >> 2
+[18:41:22.883][I][vmcbus:179]: WRITE reg 0x00A2 = 65535
+[18:41:22.949][I][vmcbus:179]: WRITE reg 0x00A2 = 65535
+[18:41:22.984][S][sensor]: 'Fan level' >> 65536 
+[18:41:26.033][I][vmcbus:104]: reg 0x00DC: 351 -> 0
+[18:41:26.047][I][vmcbus:104]: reg 0x00DD: 351 -> 0
+[18:41:26.047][I][vmcbus:104]: reg 0x00DE: 1 -> 65535
+[18:41:26.440][I][vmcbus:104]: coil 0x0044: 1 -> 0
+[18:41:26.444][I][vmcbus:104]: coil 0x0045: 1 -> 0
+[18:41:26.571][I][vmcbus:104]: reg 0x00A0: 70 -> 0
+[18:41:26.574][I][vmcbus:104]: reg 0x00A1: 70 -> 0
+[18:41:26.676][S][sensor]: 'Supply airflow' >> 0 m³/h
+[18:41:26.676][S][sensor]: 'Exhaust airflow' >> 0 m³/h
+[18:41:31.344][S][sensor]: 'Supply fan speed' >> 0 rpm
+[18:41:31.344][S][sensor]: 'Exhaust fan speed' >> 0 rpm
