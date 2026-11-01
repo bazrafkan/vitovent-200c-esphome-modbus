@@ -10,7 +10,13 @@ Flash [`esphome/vmc-sniffer-debug.yaml`](../esphome/vmc-sniffer-debug.yaml). It 
 [17:13:54.581][D][uart_debug:113]: <<< 46 03 02 00 00 0C 4B 46 03 00 85 00 02 DA 95
 ```
 
-Finding the line settings: 19200 8E1 decoded on the first try (regular frames starting with the same byte and valid CRC). If you only see garbage, try 9600 / 38400 and parity NONE via the `vmc_baud` / `vmc_parity` substitutions.
+Finding the line settings took two attempts, and the symptoms are worth knowing:
+
+- At 19200 the first capture was mostly `FE FA FF` bytes with a regular ~5 s rhythm: data was there, but garbage.
+- At 38400 every bit appeared doubled (`66 18 1E 78 E6`), which proves the real speed is half of that, i.e. **19200**.
+- Simulating a Modbus frame read with inverted polarity reproduced the `FE FA FF` pattern exactly, so the A/B wires were swapped. After swapping A+/B− on the Waveshare, 396 frames out of 396 passed the CRC check: **19200 baud, 8E1, slave 0x46**.
+
+If you need to search yourself, use the `vmc_baud` / `vmc_parity` substitutions (9600 / 19200 / 38400, EVEN / NONE).
 
 ## 2. Controlled sessions
 

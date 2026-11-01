@@ -8,6 +8,8 @@ Viessmann does not publish a Modbus register map for this unit. The map in this 
 
 > ⚠️ **Disclaimer.** This is an unofficial, community project, not affiliated with Viessmann. Opening the panel and writing to the bus is at your own risk and may affect your warranty. Always power the unit off before wiring. Only tested on one Vitovent 200-C (2026, LB1 panel).
 
+![Wiring](docs/images/wiring.svg)
+
 ## What you get
 
 | Home Assistant entity | Source |
@@ -51,7 +53,7 @@ docs/
 
 ## Quick start
 
-1. **Hardware** – Seeed XIAO ESP32-S3 + Waveshare TTL TO RS485 (C), wired in parallel to the LB1 data pair. See [docs/hardware.md](docs/hardware.md).
+1. **Hardware** – Seeed XIAO ESP32-S3 + Waveshare TTL TO RS485 (C), wired in parallel to the LB1 data pair (green → A+, yellow → B−), powered by a USB charger or by an LM2596 DC-DC from the panel's 25 V. See [docs/hardware.md](docs/hardware.md).
 2. **Firmware** – in the ESPHome Device Builder create a device, fill `secrets.yaml` from [`esphome/secrets.yaml.example`](esphome/secrets.yaml.example) and flash [`esphome/vmc-control.yaml`](esphome/vmc-control.yaml). If you want to be extra careful, start with the read-only [`vmc-sniffer.yaml`](esphome/vmc-sniffer.yaml): it never transmits.
 3. **Home Assistant** – adopt the ESPHome device (API encryption key from your secrets), then add [`homeassistant/packages/vmc.yaml`](homeassistant/packages/vmc.yaml) and the [dashboard](homeassistant/dashboards/ventilation.yaml). See [docs/home-assistant.md](docs/home-assistant.md).
 
