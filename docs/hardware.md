@@ -6,9 +6,7 @@
 
 The Waveshare module, the LM2596 and the XIAO are glued inside the bottom cover strip of the LB1 wall base, so everything stays hidden behind the panel. The new wires go in parallel onto the LB1 terminal screws (terminals 1–4, left of the base).
 
-| Front | Side |
-|---|---|
-| ![Installation, front](images/install-front.jpg) | ![Installation, side](images/install-side.jpg) |
+<p align="center"><img src="images/install-front.jpg" width="500" alt="Installation behind the LB1 panel"></p>
 
 ## Parts
 

@@ -32,6 +32,12 @@ Plus, in Home Assistant:
 - **Morning boost** – speed 4 from 08:00 to 09:00, then the previous state is restored.
 - All thresholds, times and speeds are helpers editable from a **Ventilation** dashboard (Status / Settings tabs).
 
+## Dashboard
+
+| Status | Settings |
+|---|---|
+| ![Ventilation dashboard, Status view](docs/images/dashboard-status.png) | ![Ventilation dashboard, Settings view](docs/images/dashboard-settings.png) |
+
 ## Repository layout
 
 ```

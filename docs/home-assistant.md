@@ -50,4 +50,10 @@ Replace `sensor.kitchen_induction_power` with the power sensor of your hob (here
 - **Status** – Ventilation tile with fan-speed icon buttons, hob power, airflow, filter days, temperatures, fan rpm, 24 h history graphs, diagnostic registers.
 - **Settings** – enable/disable and tune the cooking boost and morning boost helpers.
 
+| Status | Settings |
+|---|---|
+| ![Status view](images/dashboard-status.png) | ![Settings view](images/dashboard-settings.png) |
+
+Mobile: [Status view on a phone](images/dashboard-status-mobile.png).
+
 Create a new dashboard (Settings → Dashboards → Add dashboard → New dashboard from scratch), open the raw configuration editor and paste the file. The `sensor.vmc_power_meter_*`, `update.vmc_power_meter_firmware` and `button.vmc_power_meter_restart` entities come from a separate Shelly meter on the unit's supply; remove those cards if you don't have one.
